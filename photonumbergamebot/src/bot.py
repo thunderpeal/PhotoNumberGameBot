@@ -90,7 +90,7 @@ async def show_statistics(message: Message):
     medals = ["🥇", "🥈", "🥉"]
 
     stats = []
-    for i, (player, count) in enumerate(player_statistics):
+    for i, (player, count) in enumerate(player_statistics.items()):
         if i < 3:
             stats.append(f"{player}: {count} {medals[i]}")
         else:
