@@ -67,13 +67,13 @@ async def handle_photo_count(message: types.Message):
     if number_from_photo == current_number:
         if who_found_last == user_name:
             await message.answer(
-                f"@{user_name} уже нашел число {current_number - 1}, теперь очередь других игроков"
+                f"@{user_name} уже нашел(-a) число {current_number - 1}, теперь очередь других игроков"
             )
             return
         await update_current_number(chat_id, current_number + 1, user_name)
         await update_player_stats(chat_id, user_name)
         await message.answer(
-            f"@{user_name} нашел число {current_number}! Теперь ищем число {current_number + 1}"
+            f"@{user_name} нашел(-a) число {current_number}! Теперь ищем число {current_number + 1}"
         )
     logger.info(f"Finished handling photo message")
 
@@ -87,9 +87,17 @@ async def show_statistics(message: Message):
         await message.reply("Пока никто ничего не нашел! Продолжайте поиски 🎮")
         return
 
-    stats = "\n".join(
-        [f"{player}: {count}" for player, count in player_statistics.items()]
-    )
+    medals = ["🥇", "🥈", "🥉"]
+
+    stats = []
+    for i, (player, count) in enumerate(player_statistics):
+        if i < 3:
+            stats.append(f"{player}: {count} {medals[i]}")
+        else:
+            stats.append(f"{player}: {count}")
+
+    stats = "\n".join(stats)
+
     await message.reply(f"📊 Статистика участников по найденным числам:\n{stats}")
 
 
@@ -128,7 +136,7 @@ async def number_to_find(message: Message):
     else:
         await message.answer(
             text=f"Сейчас ищем число {current_number}. "
-            f"Предыдущее фото отправил @{who_found_last}, теперь очередь других игроков"
+            f"Предыдущее фото отправил(-a) @{who_found_last}, теперь очередь других игроков"
         )
     logger.info(
         f"Completed request for current number from user {message.from_user.username}"
