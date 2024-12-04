@@ -92,13 +92,13 @@ async def show_statistics(message: Message):
     stats = []
     for i, (player, count) in enumerate(player_statistics.items()):
         if i < 3:
-            stats.append(f"{player}: {count} {medals[i]}")
+            stats.append(f"{medals[i]} {player}: {count}")
         else:
             stats.append(f"{player}: {count}")
 
-    stats = "\n".join(stats)
+    stats_string = "\n".join(stats)
 
-    await message.reply(f"📊 Статистика участников по найденным числам:\n{stats}")
+    await message.reply(f"📊 Статистика игроков по найденным числам:\n{stats_string}")
 
 
 @router.message(F.text.startswith("/count_from"))
