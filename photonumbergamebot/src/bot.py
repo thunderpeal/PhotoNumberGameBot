@@ -3,7 +3,7 @@ import logging
 from aiogram import Bot, Dispatcher, F, Router, types
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandStart, Command
 from aiogram.types import CallbackQuery, Message
 
 from photonumbergamebot.src.data_managers.texts_handler import game_texts
@@ -78,7 +78,7 @@ async def handle_photo_count(message: types.Message):
     logger.info(f"Finished handling photo message")
 
 
-@router.message(F.text.startswith("/statistics"))
+@router.message(Command(commands=["statistics"]))
 async def show_statistics(message: Message):
     logger.info(f"Received statistics command from user {message.from_user.username}")
     chat_id = str(message.chat.id)
@@ -101,7 +101,7 @@ async def show_statistics(message: Message):
     await message.reply(f"📊 Статистика игроков по найденным числам:\n{stats_string}")
 
 
-@router.message(F.text.startswith("/count_from"))
+@router.message(Command(commands=["count_from"]))
 async def set_starting_number(message: Message):
     args = message.text.split()
     if len(args) != 2 or not args[1].isdigit():
@@ -117,14 +117,14 @@ async def set_starting_number(message: Message):
     await message.reply(f"Игра продолжится с числа {new_number}. Найдите его!")
 
 
-@router.message(F.text.startswith("/rules"))
+@router.message(Command(commands=["rules"]))
 async def show_rules(message: Message):
     logger.info(f"Received request for rules from user {message.from_user.username}")
     await message.reply(game_texts.rules_text)
     logger.info(f"Completed request for rules from user {message.from_user.username}")
 
 
-@router.message(F.text.startswith("/current_number"))
+@router.message(Command(commands=["current_number"]))
 async def number_to_find(message: Message):
     logger.info(
         f"Received request for current number from user {message.from_user.username}"
