@@ -36,7 +36,9 @@ async def command_start_handler(message: Message) -> None:
         show_caption_above_media=True,
     )
     chat_id = str(message.chat.id)
-    await update_current_number(chat_id, 1, "game")
+    current_number, who_found_last = await get_current_number(chat_id)
+    if not current_number:
+        await update_current_number(chat_id, 1, "game")
     logger.info(f"Finished handling start command")
 
 
@@ -131,7 +133,11 @@ async def number_to_find(message: Message):
     )
     chat_id = str(message.chat.id)
     current_number, who_found_last = await get_current_number(chat_id)
-    if who_found_last == "game":
+    if not current_number:
+        await message.answer(
+            text="Сначала начните игру через команду /start"
+        )
+    elif who_found_last == "game":
         await message.answer(text=f"Сейчас ищем число {current_number}")
     else:
         await message.answer(

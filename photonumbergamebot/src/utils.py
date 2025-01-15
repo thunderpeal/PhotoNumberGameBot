@@ -29,12 +29,12 @@ def setup_logging():
     return logger
 
 
-async def get_current_number(chat_id: str) -> tuple[int, str]:
+async def get_current_number(chat_id: str) -> tuple[int | None, str | None]:
     game_state = db_manager.get_game_state(chat_id)
     if game_state:
         return game_state.number_to_find, game_state.who_found_last
     else:
-        return 1, "game"
+        return None, None
 
 
 async def update_current_number(chat_id: str, new_number: int, user_name: str) -> None:
