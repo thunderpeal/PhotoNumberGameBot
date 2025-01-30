@@ -16,4 +16,4 @@ async def main() -> None:
 if __name__ == "__main__":
     logger = setup_logging()
     asyncio.run(main())
-    logger.info('Приложение запущено')
+    logger.info("Приложение запущено")

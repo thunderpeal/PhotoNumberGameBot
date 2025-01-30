@@ -1,19 +1,24 @@
+import base64
+import io
 import logging
+import mimetypes
 
 from aiogram import Bot, Dispatcher, F, Router, types
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
-from aiogram.filters import CommandStart, Command
+from aiogram.filters import Command, CommandStart
 from aiogram.types import CallbackQuery, Message
 
 from photonumbergamebot.src.data_managers.texts_handler import game_texts
 from photonumbergamebot.src.settings import BOT_TOKEN, EXAMPLE_PHOTO
-from photonumbergamebot.src.utils import (extract_number_from_photo,
-                                          get_current_number,
-                                          get_restrictions_button,
-                                          statistics_per_user,
-                                          update_current_number,
-                                          update_player_stats)
+from photonumbergamebot.src.utils import (
+    extract_number_from_photo,
+    get_current_number,
+    get_restrictions_button,
+    statistics_per_user,
+    update_current_number,
+    update_player_stats,
+)
 
 dp = Dispatcher()
 router = Router()
@@ -50,12 +55,19 @@ async def show_restrictions(callback: CallbackQuery):
     logger.info(f"Finished handling callback query")
 
 
-@router.message(F.photo)
+@router.message(
+    F.photo,
+    F.media_group_id.is_(None),
+    F.forward_date.is_(None),
+    F.forward_from.is_(None),
+    F.forward_from_chat.is_(None),
+)
 async def handle_photo_count(message: types.Message):
     logger.info(f"Received photo message from user {message.from_user.username}")
     chat_id = str(message.chat.id)
     user_name = message.from_user.username
     caption = message.caption
+    current_number, who_found_last = await get_current_number(chat_id)
 
     if caption:
         try:
@@ -63,13 +75,22 @@ async def handle_photo_count(message: types.Message):
         except ValueError:
             return
     else:
-        number_from_photo = await extract_number_from_photo(message)
-    current_number, who_found_last = await get_current_number(chat_id)
+        file = await bot.get_file(message.photo[-1].file_id)
+        file_path = file.file_path
+
+        img = await bot.download_file(file_path, io.BytesIO())
+        img_bytes = img.read()
+        img_b64 = base64.b64encode(img_bytes).decode("utf-8")
+        mime_type = mimetypes.guess_type(file_path)[0] or "image/jpeg"
+
+        number_from_photo = await extract_number_from_photo(
+            img_b64, mime_type, current_number
+        )
 
     if number_from_photo == current_number:
         if who_found_last == user_name:
             await message.answer(
-                f"@{user_name} уже нашел(-a) число {current_number - 1}, теперь очередь других игроков"
+                f"@{user_name}, ты уже нашел(-a) предыдущее число, теперь очередь других игроков"
             )
             return
         await update_current_number(chat_id, current_number + 1, user_name)
@@ -134,9 +155,7 @@ async def number_to_find(message: Message):
     chat_id = str(message.chat.id)
     current_number, who_found_last = await get_current_number(chat_id)
     if not current_number:
-        await message.answer(
-            text="Сначала начните игру через команду /start"
-        )
+        await message.answer(text="Сначала начните игру через команду /start")
     elif who_found_last == "game":
         await message.answer(text=f"Сейчас ищем число {current_number}")
     else:
