@@ -61,6 +61,7 @@ async def show_restrictions(callback: CallbackQuery):
     F.forward_date.is_(None),
     F.forward_from.is_(None),
     F.forward_from_chat.is_(None),
+    ~F.from_user.is_bot,
 )
 async def handle_photo_count(message: types.Message):
     logger.info(f"Received photo message from user {message.from_user.username}")
@@ -161,7 +162,7 @@ async def number_to_find(message: Message):
     else:
         await message.answer(
             text=f"Сейчас ищем число {current_number}. "
-            f"Предыдущее фото отправил(-a) @{who_found_last}, теперь очередь других игроков"
+            f"Предыдущее число нашел(-a) @{who_found_last}, теперь очередь других игроков"
         )
     logger.info(
         f"Completed request for current number from user {message.from_user.username}"
