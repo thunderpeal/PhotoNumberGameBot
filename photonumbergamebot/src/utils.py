@@ -153,13 +153,16 @@ async def statistics_per_user(chat_id: str) -> dict[str:int] | None:
 
 
 async def time_to_pay(chat_id: str) -> bool:
-    chat_payment_link_counter = db_manager.get_payment_link_state(
-        chat_id
-    ).payment_link_counter
-    db_manager.update_payment_link_state(chat_id)
-    if chat_payment_link_counter == 0:
-        return True
-    else:
+    try:
+        chat_payment_link_counter = db_manager.get_payment_link_state(
+            chat_id
+        ).payment_link_counter
+        db_manager.update_payment_link_state(chat_id)
+        if chat_payment_link_counter == 0:
+            return True
+        else:
+            return False
+    except Exception:
         return False
 
 
