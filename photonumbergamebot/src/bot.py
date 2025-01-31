@@ -10,15 +10,14 @@ from aiogram.filters import Command, CommandStart
 from aiogram.types import CallbackQuery, Message
 
 from photonumbergamebot.src.data_managers.texts_handler import game_texts
-from photonumbergamebot.src.settings import BOT_TOKEN, EXAMPLE_PHOTO
-from photonumbergamebot.src.utils import (
-    extract_number_from_photo,
-    get_current_number,
-    get_restrictions_button,
-    statistics_per_user,
-    update_current_number,
-    update_player_stats,
-)
+from photonumbergamebot.src.settings import (BOT_TOKEN, EXAMPLE_PHOTO,
+                                             SUPPORT_LINK)
+from photonumbergamebot.src.utils import (extract_number_from_photo,
+                                          get_current_number,
+                                          get_restrictions_button,
+                                          statistics_per_user,
+                                          update_current_number,
+                                          update_player_stats)
 
 dp = Dispatcher()
 router = Router()
@@ -102,7 +101,7 @@ async def handle_photo_count(message: types.Message):
     logger.info(f"Finished handling photo message")
 
 
-@router.message(Command(commands=["statistics"]))
+@router.message(Command("statistics"))
 async def show_statistics(message: Message):
     logger.info(f"Received statistics command from user {message.from_user.username}")
     chat_id = str(message.chat.id)
@@ -125,7 +124,7 @@ async def show_statistics(message: Message):
     await message.reply(f"📊 Статистика игроков по найденным числам:\n{stats_string}")
 
 
-@router.message(Command(commands=["count_from"]))
+@router.message(Command("count_from"))
 async def set_starting_number(message: Message):
     args = message.text.split()
     if len(args) != 2 or not args[1].isdigit():
@@ -141,14 +140,14 @@ async def set_starting_number(message: Message):
     await message.reply(f"Игра продолжится с числа {new_number}. Найдите его!")
 
 
-@router.message(Command(commands=["rules"]))
+@router.message(Command(commands=["rules", "help"]))
 async def show_rules(message: Message):
     logger.info(f"Received request for rules from user {message.from_user.username}")
     await message.reply(game_texts.rules_text)
     logger.info(f"Completed request for rules from user {message.from_user.username}")
 
 
-@router.message(Command(commands=["current_number"]))
+@router.message(Command("current_number"))
 async def number_to_find(message: Message):
     logger.info(
         f"Received request for current number from user {message.from_user.username}"
@@ -166,4 +165,17 @@ async def number_to_find(message: Message):
         )
     logger.info(
         f"Completed request for current number from user {message.from_user.username}"
+    )
+
+
+@router.message(Command("support"))
+async def support_handler(message: types.Message):
+    keyboard = types.InlineKeyboardMarkup(
+        inline_keyboard=[
+            [types.InlineKeyboardButton(text="Поддержать бота 💖", url=SUPPORT_LINK)]
+        ]
+    )
+    await message.answer(
+        "Если вам нравится этот бот и вы хотите поддержать его развитие, нажмите на кнопку ниже:",
+        reply_markup=keyboard,
     )

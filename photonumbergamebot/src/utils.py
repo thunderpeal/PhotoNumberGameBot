@@ -5,7 +5,8 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from openai import OpenAI
 
 from photonumbergamebot.src.data_managers.db_controller import db_manager
-from photonumbergamebot.src.settings import MODEL, MODEL_API_TOKEN, MODEL_API_URL
+from photonumbergamebot.src.settings import (MODEL, MODEL_API_TOKEN,
+                                             MODEL_API_URL)
 
 SYSTEM_PROMPT = """
 You will receive an image containing one or more numbers and a text input with a single number. Your task is to analyze the image and determine if the exact number from the text input appears as a whole number in the image.
