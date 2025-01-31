@@ -10,14 +10,17 @@ from aiogram.filters import Command, CommandStart
 from aiogram.types import CallbackQuery, Message
 
 from photonumbergamebot.src.data_managers.texts_handler import game_texts
-from photonumbergamebot.src.settings import (BOT_TOKEN, EXAMPLE_PHOTO,
-                                             SUPPORT_LINK)
-from photonumbergamebot.src.utils import (extract_number_from_photo,
-                                          get_current_number,
-                                          get_restrictions_button,
-                                          statistics_per_user,
-                                          update_current_number,
-                                          update_player_stats)
+from photonumbergamebot.src.settings import BOT_TOKEN, EXAMPLE_PHOTO, SUPPORT_LINK
+from photonumbergamebot.src.utils import (
+    extract_number_from_photo,
+    get_current_number,
+    get_restrictions_button,
+    initialize_database,
+    statistics_per_user,
+    time_to_pay,
+    update_current_number,
+    update_player_stats,
+)
 
 dp = Dispatcher()
 router = Router()
@@ -42,7 +45,7 @@ async def command_start_handler(message: Message) -> None:
     chat_id = str(message.chat.id)
     current_number, who_found_last = await get_current_number(chat_id)
     if not current_number:
-        await update_current_number(chat_id, 1, "game")
+        await initialize_database(chat_id)
     logger.info(f"Finished handling start command")
 
 
@@ -93,11 +96,26 @@ async def handle_photo_count(message: types.Message):
                 f"@{user_name}, ты уже нашел(-a) предыдущее число, теперь очередь других игроков"
             )
             return
+
         await update_current_number(chat_id, current_number + 1, user_name)
         await update_player_stats(chat_id, user_name)
+
+        keyboard = None
+        if await time_to_pay(chat_id=chat_id):
+            keyboard = types.InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [
+                        types.InlineKeyboardButton(
+                            text="Поддержать бота 💖", url=SUPPORT_LINK
+                        )
+                    ]
+                ]
+            )
         await message.answer(
-            f"@{user_name} нашел(-a) число {current_number}! Теперь ищем число {current_number + 1}"
+            text=f"@{user_name} нашел(-a) число {current_number}! Теперь ищем число {current_number + 1}",
+            reply_markup=keyboard,
         )
+
     logger.info(f"Finished handling photo message")
 
 

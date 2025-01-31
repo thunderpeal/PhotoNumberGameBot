@@ -17,3 +17,9 @@ class PlayerStats(Base):
     chat_id = Column(String, nullable=False)
     player_name = Column(String, nullable=False)
     found_numbers = Column(Integer, default=0)
+
+
+class PaymentLinkStats(Base):
+    __tablename__ = "payment_link_stats"
+    chat_id = Column(String, primary_key=True, unique=True, nullable=False)
+    payment_link_counter = Column(Integer, default=0)

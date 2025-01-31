@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 
 from photonumbergamebot.src.settings import DATABASE_URL
 
-from .db_models import Base, GameState, PlayerStats
+from .db_models import Base, GameState, PaymentLinkStats, PlayerStats
 
 
 class DatabaseManager:
@@ -24,8 +24,7 @@ class DatabaseManager:
         """Создает новую сессию."""
         return self.Session()
 
-    # CRUD-операции для GameState
-    def add_game_state(self, chat_id, number_to_find=1, who_found_last=""):
+    def add_game_state(self, chat_id, number_to_find=1, who_found_last="game"):
         with self.get_session() as session:
             game_state = GameState(
                 chat_id=chat_id,
@@ -34,6 +33,30 @@ class DatabaseManager:
             )
             session.add(game_state)
             session.commit()
+
+    def add_payment_link_state(self, chat_id):
+        with self.get_session() as session:
+            payment_link_state = PaymentLinkStats(
+                chat_id=chat_id,
+                payment_link_counter=1,
+            )
+            session.add(payment_link_state)
+            session.commit()
+
+    def update_payment_link_state(self, chat_id: str):
+        with self.get_session() as session:
+            payment_link_chat = (
+                session.query(PaymentLinkStats).filter_by(chat_id=chat_id).first()
+            )
+            if payment_link_chat.payment_link_counter == 4:
+                payment_link_chat.payment_link_counter = 0
+            else:
+                payment_link_chat.payment_link_counter += 1
+            session.commit()
+
+    def get_payment_link_state(self, chat_id):
+        with self.get_session() as session:
+            return session.query(PaymentLinkStats).filter_by(chat_id=chat_id).first()
 
     def get_game_state(self, chat_id):
         with self.get_session() as session:

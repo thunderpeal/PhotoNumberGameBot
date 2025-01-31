@@ -5,8 +5,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from openai import OpenAI
 
 from photonumbergamebot.src.data_managers.db_controller import db_manager
-from photonumbergamebot.src.settings import (MODEL, MODEL_API_TOKEN,
-                                             MODEL_API_URL)
+from photonumbergamebot.src.settings import MODEL, MODEL_API_TOKEN, MODEL_API_URL
 
 SYSTEM_PROMPT = """
 You will receive an image containing one or more numbers and a text input with a single number. Your task is to analyze the image and determine if the exact number from the text input appears as a whole number in the image.
@@ -151,3 +150,19 @@ async def statistics_per_user(chat_id: str) -> dict[str:int] | None:
         return None
     user_stats = {f"@{user.player_name}": user.found_numbers for user in sorted_users}
     return user_stats
+
+
+async def time_to_pay(chat_id: str) -> bool:
+    chat_payment_link_counter = db_manager.get_payment_link_state(
+        chat_id
+    ).payment_link_counter
+    db_manager.update_payment_link_state(chat_id)
+    if chat_payment_link_counter == 0:
+        return True
+    else:
+        return False
+
+
+async def initialize_database(chat_id: str) -> None:
+    db_manager.add_game_state(chat_id=chat_id)
+    db_manager.add_payment_link_state(chat_id=chat_id)
